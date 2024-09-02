@@ -1,5 +1,5 @@
 import streamlit as st
-from anthropic import Anthropic
+from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
 
 # Show title and description.
 st.title("📄 Document question answering")
@@ -33,14 +33,14 @@ else:
         # Process the uploaded file and question.
         document = uploaded_file.read().decode()
         
-        # Use the Messages API to interact with Claude
-        message = client.messages.create(
+        # Use the Anthropic API to interact with Claude
+        prompt = f"{HUMAN_PROMPT} Here's a document: {document}\n\n---\n\n{question}{AI_PROMPT}"
+        
+        completion = client.completions.create(
             model="claude-3-sonnet-20240229",
-            max_tokens=1000,
-            messages=[
-                {"role": "user", "content": f"Here's a document: {document}\n\n---\n\n{question}"}
-            ]
+            max_tokens_to_sample=1000,
+            prompt=prompt
         )
 
         # Display the response
-        st.write(message.content[0].text)
+        st.write(completion.completion)
