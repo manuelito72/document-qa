@@ -1,5 +1,5 @@
 import streamlit as st
-from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
+from anthropic import Anthropic
 
 # Show title and description.
 st.title("📄 Document question answering")
