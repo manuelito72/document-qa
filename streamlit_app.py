@@ -1,23 +1,21 @@
 import streamlit as st
-from openai import OpenAI
+from anthropic import Anthropic
 
 # Show title and description.
 st.title("📄 Document question answering")
 st.write(
-    "Upload a document below and ask a question about it – GPT will answer! "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
+    "Upload a document below and ask a question about it – Claude will answer! "
+    "To use this app, you need to provide an Anthropic API key, which you can get from the Anthropic website. "
 )
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
-openai_api_key = st.text_input("OpenAI API Key", type="password")
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
-else:
+# Ask user for their Anthropic API key via `st.text_input`.
+anthropic_api_key = st.text_input("Anthropic API Key", type="password")
 
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
+if not anthropic_api_key:
+    st.info("Please add your Anthropic API key to continue.", icon="🗝️")
+else:
+    # Create an Anthropic client.
+    client = Anthropic(api_key=anthropic_api_key)
 
     # Let the user upload a file via `st.file_uploader`.
     uploaded_file = st.file_uploader(
@@ -32,22 +30,17 @@ else:
     )
 
     if uploaded_file and question:
-
         # Process the uploaded file and question.
         document = uploaded_file.read().decode()
-        messages = [
-            {
-                "role": "user",
-                "content": f"Here's a document: {document} \n\n---\n\n {question}",
-            }
-        ]
-
-        # Generate an answer using the OpenAI API.
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=messages,
-            stream=True,
+        
+        # Use the Messages API to interact with Claude
+        message = client.messages.create(
+            model="claude-3-sonnet-20240229",
+            max_tokens=1000,
+            messages=[
+                {"role": "user", "content": f"Here's a document: {document}\n\n---\n\n{question}"}
+            ]
         )
 
-        # Stream the response to the app using `st.write_stream`.
-        st.write_stream(stream)
+        # Display the response
+        st.write(message.content[0].text)
